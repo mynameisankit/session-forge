@@ -1,0 +1,18 @@
+{
+  "name": "session-forge-example-sqlite",
+  "packageManager": "yarn@4.18.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@types/sqlite3": "^5.1.0",
+    "session-forge": "workspace:*",
+    "sqlite3": "^6.0.1"
+  },
+  "scripts": {
+    "dev:client": "yarn workspace session-forge-example-client dev:backend"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.4",
+    "typescript": "^7.0.2"
+  }
+}

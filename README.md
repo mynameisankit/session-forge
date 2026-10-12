@@ -1,5 +1,9 @@
 # SessionForge
 
+<p align="center">
+  <img src="assets/sessionforge-logo.png" alt="SessionForge logo: interlocking links surrounded by rotation arrows" width="640" />
+</p>
+
 A lightweight session-management library for building **revocable authentication on top of stateless access tokens**.
 
 SessionForge lets your application use short-lived JWT access tokens across distributed services while maintaining centralized control over long-lived refresh sessions.
@@ -944,6 +948,20 @@ Auditable.
 ```
 
 That distinction allows distributed systems to get most of the benefits of stateless authentication without giving up control over long-lived sessions.
+
+---
+
+## Example client
+
+The auth screens are shared across database examples in [`examples/client`](examples/client/README.md).
+
+```sh
+yarn install
+yarn client          # UI preview with in-memory mock data
+yarn client:backend  # HTTP client; start your example backend separately
+```
+
+The [SQLite workspace](examples/sqlite/README.md) is reserved for the backend you implement. The shared client defaults to proxying `/api` to `http://127.0.0.1:3000`; its README describes configuration and the HTTP contract.
 
 ---
 
