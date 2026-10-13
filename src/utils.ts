@@ -1,5 +1,2 @@
-import { randomBytes, createHash } from "node:crypto";
-
-export const createToken = (): string => randomBytes(32).toString("base64url");
-
-export const getHash = (token: string): string => createHash("sha256").update(token).digest("hex");
+export { createToken, hashToken } from './utils/token.js';
+export { hashPassword, verifyPassword } from './utils/password.js';

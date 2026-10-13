@@ -4,12 +4,21 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@types/sqlite3": "^5.1.0",
+    "jose": "^6.2.12",
+    "knex": "^3.3.0",
+    "react": "^19.2.6",
+    "react-router": "^8.4.0",
     "session-forge": "workspace:*",
     "sqlite3": "^6.0.1"
   },
   "scripts": {
-    "dev:client": "yarn workspace session-forge-example-client dev:backend"
+    "build": "yarn workspace session-forge build && tsc -p tsconfig.json",
+    "typecheck": "yarn workspace session-forge build && tsc -p tsconfig.json --noEmit",
+    "dev": "yarn build && node --watch dist/server.js",
+    "start": "node dist/server.js",
+    "test": "yarn build && node --test tests/*.test.mjs",
+    "cleanup": "yarn build && node dist/cleanup.js",
+    "dev:client": "yarn workspace session-forge-example-client dev:sqlite"
   },
   "devDependencies": {
     "@types/node": "^26.6.4",

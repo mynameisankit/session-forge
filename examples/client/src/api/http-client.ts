@@ -1,0 +1,9 @@
+import axios from "axios";
+
+export const httpClient = axios.create({
+  baseURL: "/api",
+  withCredentials: true,
+  responseType: "json",
+  transitional: { silentJSONParsing: false },
+});
+

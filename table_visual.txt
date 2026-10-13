@@ -2,12 +2,14 @@ Table session_families {
   token_hash string [primary key]
   user_id string
   revoked_at string
+  session_name string
 }
 
 Table refresh_tokens {
   token_hash string [primary key]
   family_id string [not null]
-  revoked_at string
+  consumedAt string
+  expiresAt string
 }
 
 Ref session_family: refresh_tokens.family_id > session_families.token_hash // many-to-one

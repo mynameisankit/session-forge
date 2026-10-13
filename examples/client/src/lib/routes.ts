@@ -1,4 +1,4 @@
-/** Display labels for the demo screen explorer and page titles. Routes live in App.tsx. */
+/** Display labels for page titles. Routes live in App.tsx. */
 export const screens = {
   "/login": "Sign in",
   "/register": "Create account",

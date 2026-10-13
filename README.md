@@ -957,13 +957,47 @@ The auth screens are shared across database examples in [`examples/client`](exam
 
 ```sh
 yarn install
-yarn client          # UI preview with in-memory mock data
-yarn client:backend  # HTTP client; start your example backend separately
+yarn client          # Shared client; start an example backend separately
+yarn client:backend  # Alias for the shared HTTP client
 ```
 
-The [SQLite workspace](examples/sqlite/README.md) is reserved for the backend you implement. The shared client defaults to proxying `/api` to `http://127.0.0.1:3000`; its README describes configuration and the HTTP contract.
+The [SQLite example](examples/sqlite/README.md) implements the shared client's authentication and session API using Knex and SQLite. Run `yarn workspace session-forge-example-sqlite dev` and, in another terminal, `yarn workspace session-forge-example-sqlite dev:client`. The example documents database setup with `createSQLiteSessionTables`, configuration, and password-reset links.
 
 ---
+
+
+## Session cleanup
+
+Run cleanup explicitly from your application or scheduled job:
+
+```ts
+const result = await sessions.pruneExpiredSessions(); // Seven days of retention.
+// { deletedFamilies: number, deletedTokens: number }
+
+await sessions.pruneExpiredSessions({ retentionTTL: 30 * 24 * 60 * 60 * 1000 });
+```
+
+`retentionTTL` is a non-negative integer in milliseconds. A family is eligible when its revocation timestamp is at or before the cutoff, or, if unrevoked, every token has expired at or before the cutoff. Entire families and their token histories are deleted together. Consumed tokens in families with newer unexpired tokens are preserved for reuse detection. Empty unrevoked families are retained because the current schema has no timestamp for measuring their retention.
+
+The SQLite adapter deletes tokens and families in one transaction. Repeating cleanup safely returns zero counts when nothing is eligible. A retention of zero removes eligible families without an additional grace period. Cleanup never runs automatically and is not required for expiration or revocation enforcement. Custom adapters must implement `pruneSessionFamilies(inactiveBefore)` with these same guarantees.
+
+## Shared utilities
+
+Node.js applications can import shared token and password utilities:
+
+```ts
+import { createToken, hashToken, hashPassword, verifyPassword } from 'session-forge/utils';
+
+const token = createToken();
+const tokenHash = hashToken(token);
+
+const storedHash = await hashPassword(password);
+const matches = await verifyPassword(password, storedHash);
+```
+
+`createToken` generates 32 random bytes encoded as base64url. `hashToken` hashes opaque tokens with SHA-256. Password functions use Node's scrypt with a random salt and constant-time key comparison. Store the complete returned string; verification accepts that format and returns false for malformed hashes. Password policy and authentication flows remain the application's responsibility.
+
+SessionForge also provides `validateRefreshToken(token)` for issuing fresh JWT access tokens without rotating the refresh token, and `listActiveSessionsForUser(userId)` for sessions with an unrevoked family and an unconsumed, unexpired refresh token. JWT signing stays in your application.
 
 ## Status
 

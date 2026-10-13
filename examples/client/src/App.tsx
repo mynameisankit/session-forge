@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react";
-import { Navigate, Route, Routes, useNavigate } from "react-router";
-import { authApi, type User } from "@/auth-api";
+import { redirect, type RouteObject } from "react-router";
 import { AuthLayout } from "@/components/auth/auth-layout";
+import { RouteError } from "@/components/auth/route-error";
 import { AccountPage } from "@/pages/account-page";
 import { ChangePasswordPage } from "@/pages/change-password-page";
 import { ForgotPasswordPage } from "@/pages/forgot-password-page";
@@ -10,102 +9,26 @@ import { PasswordUpdatedPage } from "@/pages/password-updated-page";
 import { RegisterPage } from "@/pages/register-page";
 import { ResetPasswordPage } from "@/pages/reset-password-page";
 import { ResetSentPage } from "@/pages/reset-sent-page";
-import { SignedOutPage } from "@/pages/signed-out-page";
+import { accountAction, accountLoader } from "@/routes/account";
+import { requireUser } from "@/routes/authentication";
+import { loginAction } from "@/routes/login";
+import { registerAction } from "@/routes/register";
+import { changePasswordAction, forgotPasswordAction, resendResetAction, resetPasswordAction } from "@/routes/password";
 
-export function App() {
-  const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [user, setUser] = useState<User | null>(null);
-
-  const [restoring, setRestoring] = useState(true);
-  const [sessionError, setSessionError] = useState("");
-
-  useEffect(() => {
-    let active = true;
-    authApi
-      .getCurrentUser()
-      .then((result) => {
-        if (active) {
-          setUser(result);
-          if (result) setEmail(result.email);
-        }
-      })
-      .catch((error) => {
-        if (active)
-          setSessionError(
-            error instanceof Error
-              ? error.message
-              : "Could not restore your session.",
-          );
-      })
-      .finally(() => {
-        if (active) setRestoring(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  function onAuthenticated(result: User) {
-    setSessionError("");
-    setUser(result);
-    setEmail(result.email);
-    navigate("/account");
-  }
-
-  function onSignedOut() {
-    setUser(null);
-    navigate("/login");
-  }
-
-  function onResetRequested(address: string) {
-    setEmail(address);
-    navigate("/reset-sent");
-  }
-
-  return (
-    <Routes>
-      <Route
-        element={<AuthLayout loading={restoring} sessionError={sessionError} />}
-      >
-        <Route index element={<Navigate to="/login" replace />} />
-        <Route
-          path="login"
-          element={
-            <LoginPage email={email} onAuthenticated={onAuthenticated} />
-          }
-        />
-        <Route
-          path="register"
-          element={
-            <RegisterPage email={email} onAuthenticated={onAuthenticated} />
-          }
-        />
-        <Route
-          path="forgot"
-          element={
-            <ForgotPasswordPage email={email} onRequested={onResetRequested} />
-          }
-        />
-        <Route path="reset-sent" element={<ResetSentPage email={email} />} />
-        <Route path="reset" element={<ResetPasswordPage />} />
-        <Route path="reset-done" element={<PasswordUpdatedPage />} />
-        <Route
-          path="account"
-          element={
-            user ? (
-              <AccountPage user={user} onSignedOut={onSignedOut} />
-            ) : (
-              <SignedOutPage />
-            )
-          }
-        />
-        <Route
-          path="change-password"
-          element={user ? <ChangePasswordPage /> : <SignedOutPage />}
-        />
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Route>
-    </Routes>
-  );
-}
+export const appRoutes: RouteObject[] = [{
+  Component: AuthLayout,
+  ErrorBoundary: () => <AuthLayout><RouteError /></AuthLayout>,
+  HydrateFallback: () => <AuthLayout><p role="status">Loading your account…</p></AuthLayout>,
+  children: [
+    { index: true, loader: () => redirect("/login") },
+    { path: "login", Component: LoginPage, action: loginAction },
+    { path: "register", Component: RegisterPage, action: registerAction },
+    { path: "forgot", Component: ForgotPasswordPage, action: forgotPasswordAction },
+    { path: "reset-sent", Component: ResetSentPage, action: resendResetAction },
+    { path: "reset", Component: ResetPasswordPage, action: resetPasswordAction },
+    { path: "reset-done", Component: PasswordUpdatedPage },
+    { path: "account", Component: AccountPage, loader: accountLoader, action: accountAction },
+    { path: "change-password", Component: ChangePasswordPage, loader: requireUser, action: changePasswordAction },
+    { path: "*", loader: () => redirect("/login") },
+  ],
+}];

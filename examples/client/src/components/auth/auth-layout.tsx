@@ -1,29 +1,19 @@
-import { useEffect } from "react";
-import { Outlet, useLocation, useNavigate } from "react-router";
+import { useEffect, type ReactNode } from "react";
+import { Outlet, useLocation, useNavigation } from "react-router";
 import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
 import { screens, type Screen } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import { clientConfig } from "@/client-config";
-import { Notice } from "./notice";
 import { BrandPanel } from "./brand-panel";
 
-export function AuthLayout({
-  loading,
-  sessionError,
-}: {
-  loading: boolean;
-  sessionError: string;
-}) {
+export function AuthLayout({ children }: { children?: ReactNode }) {
   const location = useLocation();
-  const navigate = useNavigate();
+  const navigation = useNavigation();
   const title = screens[location.pathname as Screen] || "SessionForge";
-
   useEffect(() => {
     document.title = `${title} · SessionForge`;
     document.querySelector<HTMLElement>("h1")?.focus();
-  }, [location.key, title, loading]);
-
+  }, [location.key, title]);
   return (
     <div className="grid min-h-dvh md:grid-cols-[minmax(320px,43%)_1fr]">
       <BrandPanel />
@@ -33,66 +23,15 @@ export function AuthLayout({
             <span className="size-1.5 rounded-full bg-primary/70" />
             {clientConfig.exampleName}
           </span>
-          <Badge
-            variant="outline"
-            className="font-normal text-muted-foreground"
-          >
-            {clientConfig.mock ? "UI demo" : "Backend mode"}
+          <Badge variant="outline" className="font-normal text-muted-foreground">
+            {navigation.state === "loading" ? "Loading…" : "Connected example"}
           </Badge>
         </header>
-        <section
-          key={location.key}
-          aria-label={title}
-          className={cn(
-            "mx-auto my-auto w-full max-w-sm py-12 md:py-16",
-            location.pathname === "/account" && "max-w-md",
-          )}
-        >
-          {sessionError && (
-            <div className="mb-5">
-              <Notice error>{sessionError}</Notice>
-            </div>
-          )}
-          {loading ? (
-            <p role="status" className="text-sm text-muted-foreground">
-              Loading your account…
-            </p>
-          ) : (
-            <Outlet />
-          )}
+        <section key={location.key} aria-label={title} aria-busy={navigation.state !== "idle"}
+          className={cn("mx-auto my-auto w-full max-w-sm py-12 md:py-16", location.pathname === "/account" && "max-w-md")}>
+          {children ?? <Outlet />}
         </section>
-        <footer className="flex flex-wrap items-center justify-between gap-3 text-[10px] text-muted-foreground">
-          <span>Built with SessionForge</span>
-          {clientConfig.mock && (
-            <div className="ml-auto flex items-center gap-2">
-              <Label
-                htmlFor="screen-preview"
-                className="text-[10px] font-normal"
-              >
-                Explore screens
-              </Label>
-              <select
-                id="screen-preview"
-                value={location.pathname}
-                className="max-w-36 rounded-md border bg-background p-2 text-xs text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                onChange={(event) =>
-                  navigate(
-                    event.target.value +
-                      (event.target.value === "/reset"
-                        ? "?token=demo-token"
-                        : ""),
-                  )
-                }
-              >
-                {Object.entries(screens).map(([key, title]) => (
-                  <option key={key} value={key}>
-                    {title}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-        </footer>
+        <footer className="text-[10px] text-muted-foreground">Built with SessionForge</footer>
       </main>
     </div>
   );

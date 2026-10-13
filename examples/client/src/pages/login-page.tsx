@@ -1,20 +1,13 @@
 import { Link } from "react-router";
-import { authApi, type User } from "@/auth-api";
 import { EmailField, PasswordField } from "@/components/auth/auth-fields";
-import { AuthForm, formValue } from "@/components/auth/auth-form";
+import { AuthForm } from "@/components/auth/auth-form";
 import { AuthHeading } from "@/components/auth/auth-heading";
 import { FormFooter } from "@/components/auth/auth-links";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 
-export function LoginPage({
-  email,
-  onAuthenticated,
-}: {
-  email: string;
-  onAuthenticated: (user: User) => void;
-}) {
+export function LoginPage() {
   return (
     <>
       <AuthHeading title="Welcome back">
@@ -22,18 +15,8 @@ export function LoginPage({
         <br />
         Sign in to your account to continue.
       </AuthHeading>
-      <AuthForm
-        label="Sign in"
-        onSubmit={(data) =>
-          authApi.signIn({
-            email: formValue(data, "email"),
-            password: formValue(data, "password"),
-            remember: data.get("remember") === "on",
-          })
-        }
-        onSuccess={onAuthenticated}
-      >
-        <EmailField email={email} />
+      <AuthForm label="Sign in">
+        <EmailField email="" />
         <PasswordField autoComplete="current-password" minLength={1} />
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">

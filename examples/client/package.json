@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
+    "axios": "^1.20.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.52.0",
@@ -20,7 +21,9 @@
     "preview": "vite preview --host 127.0.0.1",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "dev:backend": "vite --host 127.0.0.1 --mode backend",
+    "dev:sqlite": "vite --host 127.0.0.1 --port 5173 --strictPort --mode sqlite",
     "build:backend": "tsc -p tsconfig.json --noEmit && vite build --mode backend",
+    "build:sqlite": "tsc -p tsconfig.json --noEmit && vite build --mode sqlite",
     "test": "node --test tests/*.test.mjs"
   },
   "devDependencies": {

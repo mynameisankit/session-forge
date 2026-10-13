@@ -7,6 +7,18 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./sqlite": {
+      "types": "./dist/adapters/sqlite/index.d.ts",
+      "import": "./dist/adapters/sqlite/index.js"
+    },
+    "./utils": {
+      "types": "./dist/utils.d.ts",
+      "import": "./dist/utils.js"
+    },
+    "./utils/password": {
+      "types": "./dist/utils/password.d.ts",
+      "import": "./dist/utils/password.js"
     }
   },
   "types": "./dist/index.d.ts",
@@ -16,6 +28,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "yarn build && node --test tests/*.test.mjs",
     "client": "yarn workspace session-forge-example-client dev",
     "client:backend": "yarn workspace session-forge-example-client dev:backend"
   },
@@ -24,6 +37,20 @@
   ],
   "devDependencies": {
     "@types/node": "^26.6.4",
+    "knex": "^3.3.0",
+    "sqlite3": "^6.0.1",
     "typescript": "^7.0.2"
+  },
+  "peerDependencies": {
+    "knex": "^3.3.0",
+    "sqlite3": "^6.0.1"
+  },
+  "peerDependenciesMeta": {
+    "knex": {
+      "optional": true
+    },
+    "sqlite3": {
+      "optional": true
+    }
   }
 }
