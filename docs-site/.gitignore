@@ -1,0 +1,5 @@
+node_modules/
+dist/
+content/.vitepress/cache/
+.sites-runtime/
+*.tar.gz
