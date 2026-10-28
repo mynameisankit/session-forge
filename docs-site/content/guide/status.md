@@ -27,6 +27,8 @@ This documentation follows the current v0.1.0 implementation in `src/`, includin
 - `revokeSession()` forwards its argument directly to the store. Pass the family's `tokenHash` identifier, not a raw refresh token.
 - The schema helper creates missing tables; it does not migrate existing table layouts.
 
+The [Policies & Guarantees](./policies-guarantees) page defines the required correctness contract and identifies the current gaps. Configurable reuse policy, structured concurrency-conflict outcomes, and a shared adapter conformance suite remain unresolved or unimplemented.
+
 ## Design documents
 
 The repository's `docs/architecture/` and `docs/threat-model.md` contain architectural questions and unresolved decisions. `docs/decisions/` defines the ADR workflow. TODO items and examples in those files do not establish implemented guarantees.

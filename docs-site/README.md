@@ -28,3 +28,11 @@ Docs describe the current v0.1.0 source, rather than the README's proposed API.
 Update API pages and implementation status whenever the library contract changes.
 The site is an independent npm project and does not change the library's Yarn
 workspace dependencies.
+
+## Shared branding
+
+The docs and example client both serve the original `assets/sessionforge-logo.png`
+from the repository's shared assets directory. Their colors, font stacks, and
+corner radius come from `assets/sessionforge-theme.css`. Update that file to keep
+both interfaces consistent. Build from the repository checkout so these shared
+assets are available; do not copy `docs-site/` on its own for source builds.

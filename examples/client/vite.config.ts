@@ -13,6 +13,7 @@ export default defineConfig(({ mode }) => {
   };
 
   return {
+    publicDir: fileURLToPath(new URL("../../assets", import.meta.url)),
     plugins: [tailwindcss()],
     resolve: {
       alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },

@@ -1,27 +1,28 @@
 @import "tailwindcss";
+@import "../../../assets/sessionforge-theme.css";
 
 @theme inline {
-  --font-sans: "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-serif: Georgia, "Times New Roman", serif;
+  --font-sans: var(--sf-font-sans);
+  --font-serif: var(--sf-font-serif);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--foreground);
   --color-primary: var(--primary);
-  --color-primary-foreground: #ffffff;
+  --color-primary-foreground: var(--sf-card);
   --color-secondary: var(--secondary);
-  --color-secondary-foreground: #456443;
+  --color-secondary-foreground: var(--sf-primary-hover);
   --color-muted: var(--secondary);
-  --color-muted-foreground: #6c786b;
-  --color-accent: #e5ecdc;
+  --color-muted-foreground: var(--sf-muted);
+  --color-accent: var(--sf-accent);
   --color-accent-foreground: var(--foreground);
-  --color-destructive: #a64135;
-  --color-border: #dfe5d8;
-  --color-input: #d8dfd1;
-  --color-ring: #719b7e;
-  --color-brand: #183d36;
-  --color-brand-foreground: #f2f3dc;
-  --color-brand-accent: #e1ebbd;
+  --color-destructive: var(--sf-destructive);
+  --color-border: var(--sf-border);
+  --color-input: var(--sf-input);
+  --color-ring: var(--sf-ring);
+  --color-brand: var(--sf-brand);
+  --color-brand-foreground: var(--sf-brand-foreground);
+  --color-brand-accent: var(--sf-brand-accent);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -29,12 +30,12 @@
 }
 
 :root {
-  --background: #fafbf8;
-  --foreground: #233b34;
-  --card: #ffffff;
-  --primary: #2b5643;
-  --secondary: #eef2e6;
-  --radius: 0.625rem;
+  --background: var(--sf-background);
+  --foreground: var(--sf-foreground);
+  --card: var(--sf-card);
+  --primary: var(--sf-primary);
+  --secondary: var(--sf-secondary);
+  --radius: var(--sf-radius);
 }
 
 @layer base {

@@ -6,7 +6,9 @@
 
 A lightweight session-management library for building **revocable authentication on top of stateless access tokens**.
 
-SessionForge lets your application use short-lived JWT access tokens across distributed services while maintaining centralized control over long-lived refresh sessions.
+> 🚧 **Under development:** This is an experimental project. The API and implementation are still evolving; the architecture and planned sections below include work that has not been implemented yet.
+
+The intended architecture lets applications use short-lived JWT access tokens across distributed services while maintaining centralized control over long-lived refresh sessions. The current library implements the refresh-session side; access-token issuance and validation remain application responsibilities.
 
 It is designed around a simple idea:
 
@@ -347,7 +349,7 @@ SessionForge treats this as an explicit architectural tradeoff rather than hidin
 
 # Security Version
 
-SessionForge can optionally maintain a user-level security version.
+An application could maintain a user-level security version. This feature is not implemented by SessionForge yet.
 
 ```text
 users
@@ -471,7 +473,7 @@ Auth Server
   ├── consume R1
   ├── generate R2
   ├── persist R2 hash
-  └── issue new access token
+  └── application may issue a new access token
 ```
 
 Result:
@@ -506,81 +508,70 @@ All refresh sessions belonging to the user become invalid.
 
 ---
 
-# Proposed API
+# Implemented Core API
+
+The current core creates opaque refresh tokens, validates and rotates them, revokes sessions, lists session families, and prunes inactive families. It does not issue or validate JWT access tokens. Applications own access-token signing, HTTP handling, authentication, cookie policy, and password policy.
 
 ```ts
-import { SessionForge } from "@sessionforge/core";
+import { SessionForge } from "session-forge";
 
 const sessions = new SessionForge({
     store,
-    accessTokenTTL: "10m",
-    refreshTokenTTL: "30d",
+    expiryTTL: 30 * 24 * 60 * 60 * 1000,
 });
 ```
 
 ### Create a session
 
 ```ts
-const session = await sessions.create({
+const refreshToken = await sessions.createSession({
     userId: "user_123",
-    metadata: {
-        device: "Chrome on macOS",
-        ip: "203.0.113.10",
-    },
+    sessionName: "Chrome on macOS",
 });
 ```
 
-Returns:
+`createSession` stores a hash of a newly generated opaque token and returns the raw token once. `userId` is typed as a Node.js `UUID`.
+
+### Validate and rotate
 
 ```ts
-{
-    (sessionId, accessToken, refreshToken);
-}
+const validation = await sessions.validateRefreshToken(refreshToken);
+// { status: 'valid', userId, familyId } or status: missing | revoked | consumed | expired
+
+const result = await sessions.rotateRefreshToken(refreshToken);
+// { status: 'rotated', refreshToken: newRefreshToken, userId } or a failure status
 ```
 
----
-
-### Rotate a refresh token
-
-```ts
-const result = await sessions.refresh(refreshToken);
-```
-
-Returns:
-
-```ts
-{
-    (accessToken, refreshToken);
-}
-```
-
-The previous refresh token is automatically invalidated.
+The old token is marked consumed and a replacement token is added to the same family. Reuse detection revokes the family when a consumed token is presented. JWT access-token issuance is left to the application.
 
 ---
 
 ### Revoke one session
 
 ```ts
-await sessions.revoke(sessionId);
+await sessions.revokeSession(familyId);
 ```
+
+Pass the family identifier returned by successful validation (or the family token hash available from the store); this method delegates the identifier to `SessionStore.revokeSession`.
 
 ---
 
 ### Revoke all user sessions
 
 ```ts
-await sessions.revokeAllForUser(userId);
+await sessions.revokeAllSessionsForUser(userId);
 ```
 
 ---
 
-### List active sessions
+### List sessions
 
 ```ts
-const sessions = await sessionManager.listForUser(userId);
+const all = await sessions.listAllSessionsForUser(userId);
+const active = await sessions.listActiveSessionsForUser(userId);
 ```
 
-Example:
+The active result contains `{ tokenHash, sessionName }` summaries. The all-sessions result contains `{ tokenHash, session_name }` as currently returned by the store. These identifiers are hashes, not raw refresh tokens.
 
 ```json
 [
@@ -605,60 +596,46 @@ Example:
 
 SessionForge is intended to keep persistence separate from session semantics.
 
-Possible adapters:
+Currently implemented adapter:
 
 ```text
-@sessionforge/memory
-@sessionforge/postgres
-@sessionforge/redis
-@sessionforge/sqlite
+session-forge/sqlite
 ```
 
 Interface:
 
 ```ts
 interface SessionStore {
-    create(session: Session): Promise<void>;
-
-    findByTokenHash(tokenHash: string): Promise<Session | null>;
-
-    rotate(sessionId: string, newTokenHash: string): Promise<void>;
-
-    revoke(sessionId: string): Promise<void>;
-
-    revokeAllForUser(userId: string): Promise<void>;
+    createSession(input): Promise<void>;
+    findToken(tokenHash): Promise<RefreshTokenDetails | null>;
+    consumeAndReplace(input): Promise<void>;
+    revokeSession(tokenHash): Promise<void>;
+    revokeAllForUser(userId): Promise<void>;
+    findSessionFamilies(userId): Promise<ReadonlyArray<...>>;
+    findActiveSessionFamilies(userId): Promise<ReadonlyArray<SessionSummary>>;
+    pruneSessionFamilies(inactiveBefore): Promise<PruneResult>;
 }
 ```
 
-Applications can also implement their own adapters.
+The exported `SessionStore` type in `src/type.ts` is authoritative for exact input and result types. Applications can implement their own adapters. SQLite uses `createSQLiteSessionTables(db)` to create missing tables; schema upgrades remain the application's responsibility. SQLite rotation currently performs separate read/update/insert operations and is **not atomic**, so concurrent refresh handling is not yet safe.
 
 ---
 
-# Example Database Schema
+# SQLite Adapter Schema
 
 ```sql
-CREATE TABLE refresh_sessions (
-    id TEXT PRIMARY KEY,
-
+CREATE TABLE session_families (
+    token_hash TEXT PRIMARY KEY,
     user_id TEXT NOT NULL,
+    revoked_at INTEGER,
+    session_name TEXT NOT NULL
+);
 
-    family_id TEXT NOT NULL,
-
-    token_hash TEXT NOT NULL UNIQUE,
-
-    created_at TIMESTAMP NOT NULL,
-
-    expires_at TIMESTAMP NOT NULL,
-
-    last_used_at TIMESTAMP,
-
-    consumed_at TIMESTAMP,
-
-    revoked_at TIMESTAMP,
-
-    device_name TEXT,
-
-    ip_address TEXT
+CREATE TABLE refresh_tokens (
+    token_hash TEXT PRIMARY KEY,
+    family_id TEXT NOT NULL REFERENCES session_families(token_hash),
+    consumedAt INTEGER,
+    expiresAt TEXT NOT NULL
 );
 ```
 
@@ -666,13 +643,12 @@ Recommended indexes:
 
 ```sql
 CREATE INDEX idx_sessions_user_id
-ON refresh_sessions(user_id);
+ON session_families(user_id);
 
 CREATE INDEX idx_sessions_family_id
-ON refresh_sessions(family_id);
+ON refresh_tokens(family_id);
 
-CREATE UNIQUE INDEX idx_sessions_token_hash
-ON refresh_sessions(token_hash);
+-- token_hash is already a primary key in both tables.
 ```
 
 ---
@@ -771,28 +747,32 @@ Those are the problems SessionForge aims to solve.
 
 # Planned Features
 
-- [ ] Refresh-session persistence
-- [ ] Cryptographically secure refresh tokens
-- [ ] Hashed token storage
-- [ ] Refresh-token rotation
-- [ ] Refresh-token reuse detection
-- [ ] Refresh-token families
-- [ ] Per-device session revocation
-- [ ] Revoke all sessions for a user
-- [ ] Session expiration
+- [x] Refresh-session persistence through the `SessionStore` contract
+- [x] Cryptographically secure opaque refresh tokens (32 random bytes)
+- [x] Hashed token storage (SHA-256)
+- [x] Refresh-token rotation
+- [x] Refresh-token reuse detection with family revocation
+- [x] Refresh-token families
+- [x] Revoke a session family and revoke all families for a user
+- [x] Refresh-token expiration checks
+- [x] SQLite adapter
+- [x] Explicit expired/inactive family cleanup
+- [x] Session-family listing (all and active)
+- [x] Shared Node.js token and password utilities
+- [ ] Atomic refresh-token rotation and safe concurrent refresh handling
 - [ ] Absolute session lifetime
 - [ ] Idle session timeout
 - [ ] Security-version support
-- [ ] Session metadata
-- [ ] Active-device listing
+- [ ] Rich session metadata and device/IP details
 - [ ] PostgreSQL adapter
 - [ ] Redis adapter
-- [ ] SQLite adapter
 - [ ] In-memory adapter
 - [ ] Express middleware
 - [ ] Fastify integration
 - [ ] NestJS integration
 - [ ] Example distributed application
+
+The checklist describes current implementation status. Items marked complete exist in the code; unchecked items remain planned or under exploration. An adapter interface does not imply that every database adapter exists.
 
 ---
 
@@ -997,7 +977,7 @@ const matches = await verifyPassword(password, storedHash);
 
 `createToken` generates 32 random bytes encoded as base64url. `hashToken` hashes opaque tokens with SHA-256. Password functions use Node's scrypt with a random salt and constant-time key comparison. Store the complete returned string; verification accepts that format and returns false for malformed hashes. Password policy and authentication flows remain the application's responsibility.
 
-SessionForge also provides `validateRefreshToken(token)` for issuing fresh JWT access tokens without rotating the refresh token, and `listActiveSessionsForUser(userId)` for sessions with an unrevoked family and an unconsumed, unexpired refresh token. JWT signing stays in your application.
+SessionForge provides `validateRefreshToken(token)` to check refresh-token state without rotating it, and `listActiveSessionsForUser(userId)` for families with an unconsumed, unexpired refresh token and no revocation. JWT signing and access-token issuance stay in your application.
 
 ## Status
 

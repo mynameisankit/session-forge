@@ -55,3 +55,5 @@ Cleanup deletes eligible token rows and their family rows in a transaction, batc
 ## Concurrency boundary
 
 Session creation and rotation use separate statements. Rotation does not yet have an atomic consume-and-replace operation. Connection pool size does not establish a core-level concurrency guarantee. Review [token lifecycle](./token-lifecycle#concurrent-requests) before using rotation in concurrent workloads.
+
+The [Policies & Guarantees](./policies-guarantees#current-implementation-gap) page maps these gaps to the required invariants and defines proposed adapter conformance scenarios. Existing SQLite integration tests do not establish concurrency conformance.

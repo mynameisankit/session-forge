@@ -40,3 +40,7 @@ The SQLite adapter is useful as a schema and query reference, but its rotation i
 `pruneSessionFamilies(cutoff)` removes families revoked by the cutoff, or unrevoked families whose tokens have all expired by the cutoff. Preserve every token in retained families. Empty unrevoked families have no timestamp from which retention can be measured and are retained by the SQLite implementation.
 
 See the complete [SessionStore reference](../reference/session-store).
+
+## Conformance requirements
+
+An adapter's database mechanism can vary, but its externally observable safety contract must remain consistent. Read [Policies & Guarantees](./policies-guarantees#adapter-conformance-expectations) for the required invariants and proposed shared contract tests. The current interface and tests do not yet establish a conformance certification process.

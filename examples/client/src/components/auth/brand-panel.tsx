@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { LockKeyhole, Plus, ShieldCheck } from "lucide-react";
+import { LockKeyhole, Plus } from "lucide-react";
 
 function TrustIllustration() {
   return (
@@ -32,8 +32,7 @@ export function BrandPanel() {
         to="/login"
         className="flex w-fit items-center gap-3 text-xl font-semibold tracking-tight"
       >
-        <ShieldCheck className="size-8 text-brand-accent" aria-hidden="true" />
-        SessionForge
+        <img src="/sessionforge-logo.png" className="h-auto w-48 opacity-90 brightness-0 invert" alt="SessionForge" />
       </Link>
       <div className="my-auto hidden pt-16 md:block">
         <p className="text-[10px] font-semibold tracking-[.25em] text-brand-foreground/70">

@@ -1,0 +1,21 @@
+/* Shared identity for the example client and VitePress documentation. */
+:root {
+  --sf-font-sans: "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+  --sf-font-serif: Georgia, "Times New Roman", serif;
+  --sf-background: #f8faff;
+  --sf-foreground: #10234d;
+  --sf-card: #ffffff;
+  --sf-primary: #0054d6;
+  --sf-primary-hover: #0046b5;
+  --sf-secondary: #edf3ff;
+  --sf-muted: #65738d;
+  --sf-accent: #e0ebff;
+  --sf-border: #dce4f2;
+  --sf-input: #ced9ec;
+  --sf-ring: #4387ed;
+  --sf-destructive: #a64135;
+  --sf-brand: #061d56;
+  --sf-brand-foreground: #f0f5ff;
+  --sf-brand-accent: #9dc5ff;
+  --sf-radius: 0.625rem;
+}

@@ -51,3 +51,5 @@ Keep consumed history for active families. Removing it would turn a known consum
 The current SQLite adapter performs consumption and replacement in separate statements, without a transaction or conditional update that guarantees one winner. Two concurrent calls may both validate the same credential before replacement occurs.
 
 Applications must not rely on this adapter for atomic rotation guarantees. Custom adapters need an explicit concurrency policy; the current core/store contract does not specify a structured race-conflict status. Serializing refresh requests on the client can reduce accidental overlap but does not provide a server-side concurrency guarantee.
+
+See [Policies & Guarantees](./policies-guarantees) for at-most-once consumption, atomic rotation, revocation ordering, successor uniqueness, and failure atomicity. A losing concurrent request does not itself establish credential theft; how to respond is a separate policy decision.

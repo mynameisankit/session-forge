@@ -16,6 +16,12 @@ Client ── refresh token ─→ Authentication service
 
 The core hashes incoming refresh credentials, asks the store for token and family state, validates eligibility, and delegates mutations to the store.
 
+## Semantics and mechanics
+
+**SessionForge owns the semantics. Database adapters own the mechanics. Both must preserve the contract.** The core defines lifecycle policy and valid state transitions; adapters must implement the persistence and synchronization needed to preserve those transitions under concurrency and failures.
+
+The required invariants, ownership matrix, and current implementation gaps are documented in [Policies & Guarantees](./policies-guarantees). These are design requirements, not claims that the current SQLite adapter is conformant.
+
 ## Token families
 
 A family represents one named login session. Rotation adds token history to the same family. Revocation changes family state, invalidating every token in that family for future refresh validation.

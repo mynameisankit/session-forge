@@ -6,8 +6,8 @@ hero:
   text: Stateless access. Stateful control.
   tagline: Keep API requests decentralized. Bring refresh sessions, token rotation, and revocation under your control.
   image:
-    src: /logo.svg
-    alt: SessionForge interlocking links
+    src: /sessionforge-logo.png
+    alt: SessionForge
   actions:
     - theme: brand
       text: Get started →

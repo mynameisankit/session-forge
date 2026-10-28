@@ -1,14 +1,19 @@
 import { defineConfig } from 'vitepress';
+import { fileURLToPath } from 'node:url';
 
 export default defineConfig({
   title: 'SessionForge',
   description: 'Revocable refresh sessions for stateless authentication. Guides and API reference for SessionForge 0.1.0.',
-  outDir: '../../dist',
+  outDir: '../dist',
   lastUpdated: false,
-  head: [['link', { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' }]],
+  vite: { publicDir: fileURLToPath(new URL('../../../assets', import.meta.url)) },
+  head: [
+    ['link', { rel: 'icon', type: 'image/png', href: '/sessionforge-logo.png' }],
+    ['meta', { name: 'theme-color', content: '#061d56' }],
+  ],
   themeConfig: {
-    logo: '/logo.svg',
-    siteTitle: 'SessionForge',
+    logo: { src: '/sessionforge-logo.png', alt: 'SessionForge' },
+    siteTitle: false,
     search: { provider: 'local' },
     nav: [
       { text: 'Guide', link: '/guide/getting-started', activeMatch: '/guide/' },
@@ -23,7 +28,9 @@ export default defineConfig({
         { text: 'Implementation status', link: '/guide/status' },
       ] },
       { text: 'CORE CONCEPTS', items: [
-        { text: 'Architecture', link: '/guide/architecture' },
+        { text: 'Architecture', link: '/guide/architecture', items: [
+          { text: 'Policies & Guarantees', link: '/guide/policies-guarantees' },
+        ] },
         { text: 'Token lifecycle', link: '/guide/token-lifecycle' },
         { text: 'Revocation & security', link: '/guide/security' },
       ] },
